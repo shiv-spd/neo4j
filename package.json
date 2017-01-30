@@ -1,0 +1,22 @@
+{
+  "name": "neo4j",
+  "version": "1.0.0",
+  "description": "POC",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shiv-spd/neo4j.git"
+  },
+  "author": "shiv-spd",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/shiv-spd/neo4j/issues"
+  },
+  "homepage": "https://github.com/shiv-spd/neo4j#readme",
+  "dependencies": {
+    "express": "^4.14.0"
+  }
+}

@@ -1,0 +1,130 @@
+<h1>
+  {{title}}
+</h1>
+
+<section *ngIf="create">
+  <h4>Create data nodes</h4>
+  <label>Choose node type</label>
+  <select *ngIf="nodeTypes.length" (change)="onChange($event)" onchange="dataLayer.push({'event': 'nodeType-select'});">
+    <option *ngFor="let type of nodeTypes" selected="{{isSelected(type)}}">{{type}}</option>
+  </select>
+  <br/>
+  <br/>
+  <br/>
+   <div class="form">
+    <br/>
+    <div *ngIf="selectedCreateNodeType === 'User'">
+      <input placeholder="Enter name" [(ngModel)]="userName" />
+      <br/>
+      <br/>
+      <input placeholder="Enter age" value="" [(ngModel)]="userAge" />
+    </div>
+    <div *ngIf="selectedCreateNodeType === 'Post'">
+      <input placeholder="Enter Post title" value="" [(ngModel)]="postTitle" />
+      <br/>
+      <br/>
+      <input placeholder="Enter desciption" value="" [(ngModel)]="postDesc" />
+    </div>
+    <div *ngIf="selectedCreateNodeType === 'Comment'">
+      <input placeholder="Enter desciption" value="" [(ngModel)]="commentDesc" />
+      <br/>
+    </div>
+    <br/>
+    <div><button (click)="createData()">Create</button></div>
+  </div> 
+  
+  <div class="form">
+    <br/>
+    <div *ngFor="let type of nodeTypes">
+       <div *ngIf="selectedCreateNodeType === type">
+         Create Data for {{type}}
+       </div>
+    </div>
+    <div><button (click)="createDataDummy()">Create</button></div>
+  </div>
+  
+</section>
+<section *ngIf="view">
+  <h4>View data nodes</h4>
+  <label>Choose node type</label>
+  <select *ngIf="nodeTypes.length" (change)="onChange($event)" onchange="dataLayer.push({'event': 'nodeType-select'});">
+    <option *ngFor="let type of nodeTypes" selected="{{isSelected(type)}}">{{type}}</option>
+  </select>
+  <br />
+  <br />
+  <div class="form" *ngIf="isBaseView">
+    <br/>
+    <div>
+      <div *ngFor="let node of nodeTypeData[selectedViewNodeType]" class="data-row collapsed {{selectedViewNodeType}}" (click)="getConnectNodes({'node': node, 'level': 1, nodeType: selectedViewNodeType})">
+        <div *ngFor="let key of getKeys(node)">
+          <div *ngIf="!getKeys(node[key])">
+            <label>{{key}}</label> : 
+            <span class="value">{{node[key]}}</span>
+          </div>
+          <div *ngIf="getKeys(node[key])">
+            <label>{{key}}</label> :
+            <div *ngFor="let key1 of getKeys(node[key])" class="nested-property"> 
+              <div>
+                <label>{{key1}}</label> : 
+                <span class="value">{{node[key][key1]}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <br/>
+      </div>
+    </div>
+    <br/>
+  </div>
+  <button (click)="drawgraph()" >Draw graph</button> 
+  <section class="graph">
+    
+  </section>
+  
+  <div *ngIf="!isBaseView && selectedNode">
+    <div class="data-row collapsed {{selectedNode.nodeType}}">
+      <div *ngFor="let key of getKeys(selectedNode.node)">
+          <div *ngIf="!getKeys(selectedNode.node[key])">
+            <label>{{key}}</label> : 
+            <span class="value">{{selectedNode.node[key]}}</span>
+          </div>
+          <div *ngIf="getKeys(selectedNode.node[key])">
+            <label>{{key}}</label> :
+            <div *ngFor="let key1 of getKeys(selectedNode.node[key])" class="nested-property"> 
+              <div>
+                <label>{{key1}}</label> : 
+                <span class="value">{{selectedNode.node[key][key1]}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button (click)="isBaseView=true; selectedNode=null;">Clear selection</button>
+      <div class="connected-nodes">
+         <div *ngIf="connectedNodes && getKeys(connectedNodes)">
+            <div *ngFor="let keyconnectedNodes of getKeys(connectedNodes)">
+               <h2>{{keyconnectedNodes}}</h2>
+                <div >
+                   <div *ngFor="let connectedNode of connectedNodes[keyconnectedNodes]" class="data-row collapsed {{connectedNode.labels[0]}}">
+				      <div *ngFor="let key of getKeys(connectedNode)">
+				          <div *ngIf="!getKeys(connectedNode[key])">
+				            <label>{{key}}</label> : 
+				            <span class="value">{{connectedNode[key]}}</span>
+				          </div>
+				          <div *ngIf="getKeys(connectedNode[key])">
+				            <label>{{key}}</label> :
+				            <div *ngFor="let key1 of getKeys(connectedNode[key])" class="nested-property"> 
+				              <div>
+				                <label>{{key1}}</label> : 
+				                <span class="value">{{connectedNode[key][key1]}}</span>
+				              </div>
+				            </div>
+				          </div>
+				        </div>
+				   </div>                
+               </div> 
+            </div> 
+		  </div>
+      </div>
+    </div>
+</section>
