@@ -50,7 +50,7 @@ router.post('/post', function(req, res, next) {
 router.get('/:nodeType', function(req, res, next) {
 	console.log("1" + req.params.nodeType);
 	var typename = req.params.nodeType;
-	var query = `MATCH (n:${typename}) RETURN (n) LIMIT 5`;
+	var query = `MATCH (n:${typename}) RETURN (n) LIMIT 15`;
 	console.log('query: ' + query);
 	db.cypher({
 	    query: query
@@ -72,12 +72,14 @@ router.get('/:nodeType', function(req, res, next) {
 });
 
 router.get('/connectednodesrelationships/id/:nodeid/nodeType/:nodeType/level/:level', function(req, res, next) {
-	console.log("1" + req.params.nodeType);
 	var nodeid = req.params.nodeid;
+	var nodeType = req.params.nodeType;
 	var level = req.params.level;
 	var nodeType = req.params.nodeType;
-	var query = `MATCH (a)-[r]-(m) where a.id = '${nodeid}' RETURN distinct type(r)`;
-	console.log('query: ' + query);
+	var query = `MATCH (a:${nodeType})-[r]-(m) where a.id = '${nodeid}' RETURN distinct type(r)`;
+	console.log('---------------------------------------');
+	console.log('\n query: ' + query);
+	console.log('---------------------------------------');
 	db.cypher({
 	    query: query
 	}, getRelationshipsCallback);
@@ -97,13 +99,15 @@ router.get('/connectednodesrelationships/id/:nodeid/nodeType/:nodeType/level/:le
 	}
 });
 
-router.get('/connectednodes/id/:nodeid/relation/:relation/level/:level', function(req, res, next) {
-	console.log("1" + req.params.nodeType);
+router.get('/connectednodes/id/:nodeid/nodeType/:nodeType/relation/:relation/level/:level', function(req, res, next) {
 	var nodeid = req.params.nodeid;
+	var nodeType = req.params.nodeType;
 	var level = req.params.level;
 	var relation = req.params.relation;
-	var query = `MATCH (a)-[r]->(b) where a.id='${nodeid}' and (startnode(r).id = a.id or endnode(r).id=a.id) return distinct b`;
-	console.log('query: ' + query);
+	var query = `MATCH (a:${nodeType})-[r:${relation}]-(b) where a.id='${nodeid}' and (startnode(r).id = a.id or endnode(r).id=a.id) return distinct b`;
+	console.log('---------------------------------------');
+	console.log('\n query: ' + query);
+	console.log('---------------------------------------');
 	db.cypher({
 	    query: query
 	}, getRelationshipsCallback);

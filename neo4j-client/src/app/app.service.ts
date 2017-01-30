@@ -92,9 +92,9 @@ export class AppService {
     return this._http.get(url).map(this.extractData).catch(this.handleError);
   }
     
-  getConnectedNodes({node, level, rel}) {
+  getConnectedNodes({node, level, rel, nodeType}) {
     var id = node.properties.id || node._id;
-    let url: any = `${ENDPOINT}/connectednodes/id/${id}/relation/${rel}/level/${level}`;
+    let url: any = `${ENDPOINT}/connectednodes/id/${id}/nodeType/${nodeType}/relation/${rel}/level/${level}`;
 
     return this._http.get(url).map(this.extractData).catch(this.handleError);
   }

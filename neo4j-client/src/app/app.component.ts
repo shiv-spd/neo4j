@@ -8,12 +8,14 @@ import { AppService } from './app.service';
   providers: [AppService]
 })
 export class AppComponent implements OnInit{
-  public d3: any;
 
   constructor(
     private service: AppService
   ){}
-  title = 'Neo4j Client!';
+  
+  isGraphMode: boolean = true;
+    
+  title = 'Neo4j Client POC!';
   create = false;
   view = true;
   nodeTypes = [];
@@ -141,6 +143,7 @@ export class AppComponent implements OnInit{
     this.service.getResultsForNodeType(this.selectedViewNodeType).subscribe((res) => {
       if (res) {
         this.nodeTypeData[this.selectedViewNodeType] = res[this.selectedViewNodeType];
+        this.drawBaseGraph();
       }
     }, (err) => {
       console.log('Error in connecting');
@@ -161,6 +164,7 @@ export class AppComponent implements OnInit{
     
   selectedNode = null;
   connectedNodes = {};
+    
   getConnectNodes({node, level, nodeType }) {
     this.selectedNode = null;
     this.connectedNodes = {};
@@ -176,10 +180,11 @@ export class AppComponent implements OnInit{
       if (res) {
            console.log('Success in connecting');
            for (let rel of res) {
-             this.service.getConnectedNodes({node, level, rel}).subscribe((resp) => {
+             this.service.getConnectedNodes({node, level, rel, nodeType}).subscribe((resp) => {
                if (resp) {
                    console.log('Success in connecting');
                    this.connectedNodes[rel] = resp;
+                   this.drawRelationShipGraph();
                }
              }, (erro) => {
                console.log('Error in connecting');
@@ -191,14 +196,95 @@ export class AppComponent implements OnInit{
     });
     
   }
+  
+  graph: any;
     
-  drawgraph() {
+  getNodesAndLinks(){
+    let graph = {
+      nodes :[],
+      links: []    
+    };
+      
+    graph.nodes.push(this.selectedNode.node);
+    for(let key in this.connectedNodes) {
+      for(let node of this.connectedNodes[key]){
+        graph.nodes.push(node);
+        graph.links.push({ 
+          "target": graph.nodes.length-1, 
+          "source":  0, 
+          "name": key
+        });  
+      }   
+    }
+    graph.nodes = graph.nodes.map((node)=> {
+     node.name = node.properties.name || node.properties.title;
+     return node;    
+    });
+     
+    return graph;      
+  }
+  
+  padding = 5;
+  radius = 60;
+  collide(alpha) {
+      let radius = this.radius;
+      let padding = this.padding;
+      let graph = this.graph;
+      
+      var quadtree = d3.geom.quadtree(graph.nodes);
+      return function(d) {
+        var rb = 2*radius + padding,
+            nx1 = d.x - rb,
+            nx2 = d.x + rb,
+            ny1 = d.y - rb,
+            ny2 = d.y + rb;
+        quadtree.visit(function(quad, x1, y1, x2, y2) {
+          if (quad.point && (quad.point !== d)) {
+            var x = d.x - quad.point.x,
+                y = d.y - quad.point.y,
+                l = Math.sqrt(x * x + y * y);
+              if (l < rb) {
+              l = (l - rb) / l * alpha;
+              d.x -= x *= l;
+              d.y -= y *= l;
+              quad.point.x += x;
+              quad.point.y += y;
+            }
+          }
+          return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
+        });
+      };
+    } 
+    
+  drawRelationShipGraph() {
+    var graph: any = this.getNodesAndLinks();
+    graph['selector'] = '.graph';
+    this.padding = 5;
+    this.drawGraph(graph);
+  }
+    
+  drawBaseGraph() {
+    let graph = {
+      nodes :[],
+      links: []    
+    };
+    graph['nodes'] = this.nodeTypeData[this.selectedViewNodeType].map((node)=> {
+     node.name = node.properties.name || node.properties.title;
+     return node;    
+    });
+    graph['selector'] = '.base-graph';
+    this.padding = 50;
+    this.drawGraph(graph);
+  }
+    
+  drawGraph(graph) {
+    this.graph = graph;
     // Define the dimensions of the visualization. We're using
     // a size that's convenient for displaying the graphic on
     // http://jsDataV.is
     
-    var width = 640,
-        height = 480;
+    var width = 1920,
+      height = 980;
     
     // Define the data for the example. In general, a force layout
     // requires two data arrays. The first array, here named `nodes`,
@@ -216,85 +302,29 @@ export class AppComponent implements OnInit{
     // get a consistent application of the layout which lets us see the
     // effects of different properties.
     
-    var nodes = [  { "x": 208.992345, "y": 273.053211 },
-                { "x": 595.98896,  "y":  56.377057 },
-                { "x": 319.568434, "y": 278.523637 },
-                { "x": 214.494264, "y": 214.893585 },
-                { "x": 482.664139, "y": 340.386773 },
-                { "x":  84.078465, "y": 192.021902 },
-                { "x": 196.952261, "y": 370.798667 },
-                { "x": 107.358165, "y": 435.15643  },
-                { "x": 401.168523, "y": 443.407779 },
-                { "x": 508.368779, "y": 386.665811 },
-                { "x": 355.93773,  "y": 460.158711 },
-                { "x": 283.630624, "y":  87.898162 },
-                { "x": 194.771218, "y": 436.366028 },
-                { "x": 477.520013, "y": 337.547331 },
-                { "x": 572.98129,  "y": 453.668459 },
-                { "x": 106.717817, "y": 235.990363 },
-                { "x": 265.064649, "y": 396.904945 },
-                { "x": 452.719997, "y": 137.886092 }
-            ];
+    var nodes = graph.nodes;
+    
     
     // The `links` array contains objects with a `source` and a `target`
     // property. The values of those properties are the indices in
     // the `nodes` array of the two endpoints of the link.
+    var links = graph.links;  
     
-    var links = [  { "target": 11, "source":  0 },
-                { "target":  3, "source":  0 },
-                { "target": 10, "source":  0 },
-                { "target": 16, "source":  0 },
-                { "target":  1, "source":  0 },
-                { "target":  3, "source":  0 },
-                { "target":  9, "source":  0 },
-                { "target":  5, "source":  0 },
-                { "target": 11, "source":  0 },
-                { "target": 13, "source":  0 },
-                { "target": 16, "source":  0 },
-                { "target":  3, "source":  1 },
-                { "target":  9, "source":  1 },
-                { "target": 12, "source":  1 },
-                { "target":  4, "source":  2 },
-                { "target":  6, "source":  2 },
-                { "target":  8, "source":  2 },
-                { "target": 13, "source":  2 },
-                { "target": 10, "source":  3 },
-                { "target": 16, "source":  3 },
-                { "target":  9, "source":  3 },
-                { "target":  7, "source":  3 },
-                { "target": 11, "source":  5 },
-                { "target": 13, "source":  5 },
-                { "target": 12, "source":  5 },
-                { "target":  8, "source":  6 },
-                { "target": 13, "source":  6 },
-                { "target": 10, "source":  7 },
-                { "target": 11, "source":  7 },
-                { "target": 17, "source":  8 },
-                { "target": 13, "source":  8 },
-                { "target": 11, "source": 10 },
-                { "target": 16, "source": 10 },
-                { "target": 13, "source": 11 },
-                { "target": 14, "source": 12 },
-                { "target": 14, "source": 12 },
-                { "target": 14, "source": 12 },
-                { "target": 15, "source": 12 },
-                { "target": 16, "source": 12 },
-                { "target": 15, "source": 14 },
-                { "target": 16, "source": 14 },
-                { "target": 15, "source": 14 },
-                { "target": 16, "source": 15 },
-                { "target": 16, "source": 15 },
-                { "target": 17, "source": 16 }
-            ];
     
     // Here's were the code begins. We start off by creating an SVG
     // container to hold the visualization. We only need to specify
     // the dimensions for this container.
+      
+    //clear canvas before drawing
+    d3.selectAll(graph.selector + " > svg").remove();
     
-    var svg = d3.select('.graph').append('svg')
-        .attr('width', width)
-        .attr('height', height);
+    var svg = d3.select(graph.selector).append('svg')
+      .attr("viewBox", "0 0 " + width + " " + height );
+      
+     //   .attr('width', width)
+      //  .attr('height', height);
     
+      
     // Now we create a force layout object and define its properties.
     // Those include the dimensions of the visualization and the arrays
     // of nodes and links.
@@ -303,6 +333,8 @@ export class AppComponent implements OnInit{
         .size([width, height])
         .nodes(nodes)
         .links(links);
+    
+    const node_drag = this.handleDrag(force);
     
     // There's one more property of the layout we need to define,
     // its `linkDistance`. That's generally a configurable value and,
@@ -313,7 +345,7 @@ export class AppComponent implements OnInit{
     // nodes that are connected. (It is, thus, the length we'd
     // like our links to have.)
     
-    force.linkDistance(width/2);
+    force.linkDistance(width/5);
     
     // Next we'll add the nodes and links to the visualization.
     // Note that we're just sticking them into the SVG container
@@ -334,22 +366,84 @@ export class AppComponent implements OnInit{
     var link = svg.selectAll('.link')
         .data(links)
         .enter().append('line')
-        .attr('class', 'link');
+        .attr('class', function(d) { return 'link ' + d.name; });
     
     // Now it's the nodes turn. Each node is drawn as a circle.
     
     var node = svg.selectAll('.node')
         .data(nodes)
         .enter().append('circle')
-        .attr('class', 'node');
-    
+        .attr("stroke", "black")
+        .attr('class',  (d) => { return this.isBaseView? this.selectedViewNodeType : d.labels[0]; })
+        .attr("r", (d)=> { return this.radius; })
+        .on('click', function(d) {d.fixed = false; })
+        .on('dblclick', (d) => { this.getConnectNodes({'node': d, 'level': 1, nodeType: d.labels[0]}); })
+        .on("mouseover", function(d) {
+          var g = d3.select(this); // The node
+          // The class is used to remove the additional text later
+          var info = g.append('text')
+           .classed('info', true)
+           .attr('x', 20)
+           .attr('y', 10)
+           .text('More info');
+        })
+        .on("mouseout", function() {
+          // Remove the info text on mouse out.
+          d3.select(this).select('text.info').remove();
+        });
+        //.call(node_drag);
+        
+         //Added 
+      
+      /*var node = svg.selectAll("circle.node")
+      .data(nodes)
+      .enter().append("svg:circle")
+      .style("fill", function (d) { return '#1f77b4'; })
+      .attr("class", "node")
+      .attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; })
+      .attr("r", function(d) { return r(d.textContent) || 5; })
+      .call(force.drag);*/
+
+       var text = svg.selectAll("text")
+                    .data(nodes)
+                    .enter()
+                    .append("text")
+                    .attr("fill", "white")
+                    .attr("font-family", "sans-serif")
+                    .attr("font-size", "14px")
+                    .text(function(d) { return d.name.substr(0,15); });
+                   
+      
+    force.on("tick", ()=> {
+        link.attr("x1", function (d) {
+            return d.source.x;
+        })
+            .attr("y1", function (d) {
+            return d.source.y;
+        })
+            .attr("x2", function (d) {
+            return d.target.x;
+        })
+            .attr("y2", function (d) {
+            return d.target.y;
+        });
+        node.attr("cx", function (d) {
+            return d.x;
+        })
+            .attr("cy", function (d) {
+            return d.y;
+        });
+         node.each(this.collide(0.5)); //Added 
+   });
+      
     // We're about to tell the force layout to start its
     // calculations. We do, however, want to know when those
     // calculations are complete, so before we kick things off
     // we'll define a function that we want the layout to call
     // once the calculations are done.
     
-    force.on('end', function() {
+    force.on('end', ()=> {
     
         // When this function executes, the force layout
         // calculations have concluded. The layout will
@@ -365,9 +459,10 @@ export class AppComponent implements OnInit{
         // give the node a non-zero radius so that it's visible
         // in the container.
     
-        node.attr('r', width/25)
+        node.attr('r', (d)=> { return this.radius; })
             .attr('cx', function(d) { return d.x; })
             .attr('cy', function(d) { return d.y; });
+        
     
         // We also need to update positions of the links.
         // For those elements, the force layout sets the
@@ -378,6 +473,10 @@ export class AppComponent implements OnInit{
             .attr('y1', function(d) { return d.source.y; })
             .attr('x2', function(d) { return d.target.x; })
             .attr('y2', function(d) { return d.target.y; });
+        
+        text.attr("transform", (d) => {
+          return "translate(" + (d.x-(this.radius-2)) + "," + d.y + ")";
+        });
     
     });
     
@@ -402,5 +501,30 @@ export class AppComponent implements OnInit{
     // Of course, there's quite a bit more than that going on
     // under the hood. We'll take a closer look starting with
     // the next example.    
+  }
+    
+  handleDrag(force){
+    function dragstart(d, i) {
+        force.stop() // stops the force auto positioning before you start dragging
+    }
+    function dragmove(d, i) {
+        d.px += d3.event.dx;
+        d.py += d3.event.dy;
+        d.x += d3.event.dx;
+        d.y += d3.event.dy;
+    }
+    function dragend(d, i) {
+        d.fixed = true; // of course set the node to fixed so the force doesn't include the node in its auto positioning stuff
+        force.resume();
+    }
+    function releasenode(d) {
+        d.fixed = false; // of course set the node to fixed so the force doesn't include the node in its auto positioning stuff
+        //force.resume();
+    } 
+   
+    return d3.behavior.drag()
+        .on("dragstart", dragstart)
+        .on("drag", dragmove)
+        .on("dragend", dragend);
   }
 }

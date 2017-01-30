@@ -1,9 +1,9 @@
-<h1>
+<h1 class="title">
   {{title}}
 </h1>
 
 <section *ngIf="create">
-  <h4>Create data nodes</h4>
+  <h4>Create data</h4>
   <label>Choose node type</label>
   <select *ngIf="nodeTypes.length" (change)="onChange($event)" onchange="dataLayer.push({'event': 'nodeType-select'});">
     <option *ngFor="let type of nodeTypes" selected="{{isSelected(type)}}">{{type}}</option>
@@ -34,7 +34,6 @@
   </div> 
   
   <div class="form">
-    <br/>
     <div *ngFor="let type of nodeTypes">
        <div *ngIf="selectedCreateNodeType === type">
          Create Data for {{type}}
@@ -45,44 +44,63 @@
   
 </section>
 <section *ngIf="view">
-  <h4>View data nodes</h4>
-  <label>Choose node type</label>
-  <select *ngIf="nodeTypes.length" (change)="onChange($event)" onchange="dataLayer.push({'event': 'nodeType-select'});">
-    <option *ngFor="let type of nodeTypes" selected="{{isSelected(type)}}">{{type}}</option>
-  </select>
-  <br />
-  <br />
+  <div class='text-center'>
+    <h4>View Nodes</h4>
+	<label class="label">Choose node type</label>
+	<select *ngIf="nodeTypes.length" (change)="onChange($event)" onchange="dataLayer.push({'event': 'nodeType-select'});">
+	  <option *ngFor="let type of nodeTypes" selected="{{isSelected(type)}}">{{type}}</option>
+	</select>
+  </div>
   <div class="form" *ngIf="isBaseView">
-    <br/>
-    <div>
-      <div *ngFor="let node of nodeTypeData[selectedViewNodeType]" class="data-row collapsed {{selectedViewNodeType}}" (click)="getConnectNodes({'node': node, 'level': 1, nodeType: selectedViewNodeType})">
-        <div *ngFor="let key of getKeys(node)">
-          <div *ngIf="!getKeys(node[key])">
-            <label>{{key}}</label> : 
-            <span class="value">{{node[key]}}</span>
-          </div>
-          <div *ngIf="getKeys(node[key])">
-            <label>{{key}}</label> :
-            <div *ngFor="let key1 of getKeys(node[key])" class="nested-property"> 
-              <div>
-                <label>{{key1}}</label> : 
-                <span class="value">{{node[key][key1]}}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <br/>
+    <div *ngIf="isGraphMode">
+      <section class="base-graph">
+    
+      </section>
+    </div>
+    <div *ngIf="!isGraphMode">
+      <div>
+	     <div *ngFor="let node of nodeTypeData[selectedViewNodeType]" class="data-row collapsed {{selectedViewNodeType}}" (click)="getConnectNodes({'node': node, 'level': 1, nodeType: selectedViewNodeType})">
+	       <div *ngFor="let key of getKeys(node)">
+	         <div *ngIf="!getKeys(node[key])">
+	           <label>{{key}}</label> : 
+	           <span class="value">{{node[key]}}</span>
+	         </div>
+	         <div *ngIf="getKeys(node[key])">
+	           <label>{{key}}</label> :
+	           <div *ngFor="let key1 of getKeys(node[key])" class="nested-property"> 
+	             <div>
+	               <label>{{key1}}</label> : 
+	               <span class="value">{{node[key][key1]}}</span>
+	             </div>
+	           </div>
+	         </div>
+	       </div>
+	     </div>
       </div>
     </div>
-    <br/>
   </div>
-  <button (click)="drawgraph()" >Draw graph</button> 
-  <section class="graph">
-    
-  </section>
   
   <div *ngIf="!isBaseView && selectedNode">
-    <div class="data-row collapsed {{selectedNode.nodeType}}">
+    <div class="graph-container" *ngIf="isGraphMode">
+      <button (click)="drawRelationShipGraph()" class="hide" >Draw graph</button>
+      <section class="graph">
+        <div class="text-right">
+          <button (click)="isBaseView=true; selectedNode=null;">Clear</button>
+	    </div> 
+	    <div class="legends">
+	      <h4>Relationships</h4>
+	      <div *ngFor="let key of getKeys(connectedNodes)"> 
+	       <div class='separator'>
+	         <label class="{{key}}">{{key}} -------------- </label>
+	       </div>
+	     </div>
+	    </div>
+    
+      </section>
+    </div>
+  
+    <div *ngIf="!isGraphMode">
+     <div class="data-row collapsed {{selectedNode.nodeType}}">
       <div *ngFor="let key of getKeys(selectedNode.node)">
           <div *ngIf="!getKeys(selectedNode.node[key])">
             <label>{{key}}</label> : 
@@ -99,7 +117,6 @@
           </div>
         </div>
       </div>
-      <button (click)="isBaseView=true; selectedNode=null;">Clear selection</button>
       <div class="connected-nodes">
          <div *ngIf="connectedNodes && getKeys(connectedNodes)">
             <div *ngFor="let keyconnectedNodes of getKeys(connectedNodes)">
@@ -126,5 +143,6 @@
             </div> 
 		  </div>
       </div>
+    </div>
     </div>
 </section>

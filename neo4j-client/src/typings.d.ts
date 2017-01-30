@@ -3,4 +3,5 @@
 // https://www.typescriptlang.org/docs/handbook/writing-declaration-files.html
 
 declare var d3: any;
+declare var r: any;
 

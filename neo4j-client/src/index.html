@@ -41,19 +41,36 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     padding-left: 30px;
   }
   .Person{
+   fill: red;
    background-color: red;
   }
   .Movie{
+   fill: green;
    background-color: green;
   }
   .Actor{
+   fill: gray;
    background-color: gray;
   }
   .User{
+   fill: purple;
    background-color: purple;
   }
   .Director{
+   fill: orange;
    background-color: orange;
+  }
+  
+  .ACTS_IN{
+    stroke: red !important;
+    stroke-width: 4px !important;
+    color: red !important;
+  }
+  
+  .DIRECTED{
+    stroke: green !important; 
+    stroke-width: 4px !important;
+    color: green !important;
   }
   
   .node {
@@ -67,9 +84,39 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     stroke-width: 2px;
   }
   
-  .graph{
-    background-color: yellow;
+  .graph, .base-graph{
+    background-color: aquamarine;
+    margin: 50px;
   }
+  .hide{
+    display: none;
+  }
+  .title{
+    text-align: center;
+    color: darkgreen;
+  }
+  .label{
+    color: black;
+  }
+  h1,h4{
+    margin: 0px;
+  }
+  .text-center{
+    text-align: center;
+  }
+  .legends{
+    max-width: 25%;
+    display: block;
+    padding: 10px;
+  }
+  .text-right{
+    text-align: right;
+  }
+  .separator{
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+  }
+  svg {display: block; width: 80%; margin: 0 auto;}
   </style>
   
   <script src='http://d3js.org/d3.v3.min.js'></script>
