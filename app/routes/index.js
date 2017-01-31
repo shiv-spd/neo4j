@@ -101,7 +101,7 @@ router.get('/connectednodesrelationships/id/:nodeid/nodeType/:nodeType/level/:le
 	var nodeType = req.params.nodeType;
 	var level = req.params.level;
 	var nodeType = req.params.nodeType;
-	var query = `MATCH (a:${nodeType})-[r]-(m) where id(a) = ${nodeid} RETURN distinct type(r)`;
+	var query = `MATCH (a:${nodeType})-[r]-(m) where id(a) = ${nodeid} or a.id = '${nodeid}' RETURN distinct type(r)`;
 	console.log('---------------------------------------');
 	console.log('\n query: ' + query);
 	console.log('---------------------------------------');
@@ -129,7 +129,7 @@ router.get('/connectednodes/id/:nodeid/nodeType/:nodeType/relation/:relation/lev
 	var nodeType = req.params.nodeType;
 	var level = req.params.level;
 	var relation = req.params.relation;
-	var query = `MATCH (a:${nodeType})-[r:${relation}]-(b) where id(a)=${nodeid} and (id(startnode(r)) = id(a) or id(endnode(r))=id(a)) return distinct b`;
+	var query = `MATCH (a:${nodeType})-[r:${relation}]-(b) where (id(a)=${nodeid} or a.id = '${nodeid}') and ((id(startnode(r)) = id(a) or startnode(r).id=a.id) or (id(endnode(r))=id(a) or endnode(r).id=a.id)) return distinct b`;
 	console.log('---------------------------------------');
 	console.log('\n query: ' + query);
 	console.log('---------------------------------------');
