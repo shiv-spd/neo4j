@@ -75,7 +75,7 @@ router.get('/captureEvents', function(req, res, next) {
 router.get('/:nodeType', function(req, res, next) {
 	console.log("1" + req.params.nodeType);
 	var typename = req.params.nodeType;
-	var query = `MATCH (n:${typename}) RETURN (n) LIMIT 15`;
+	var query = `MATCH (n:${typename}) RETURN (n) LIMIT 2`;
 	console.log('query: ' + query);
 	db.cypher({
 	    query: query

@@ -198,20 +198,28 @@ export class AppComponent implements OnInit{
   }
   
   graph: any;
+  
+  getIndex(nodes, node) {
+    var indexes = nodes.map((node) => node._id);
+    var index = indexes.indexOf(node._id);
+    console.log('index: '+ index);
+    return index;
+  }
     
   getNodesAndLinks(){
     let graph = {
       nodes :[],
       links: []    
     };
-      
+    graph = this.concatNodesAndLinks(graph); 
     graph.nodes.push(this.selectedNode.node);
     for(let key in this.connectedNodes) {
       for(let node of this.connectedNodes[key]){
         graph.nodes.push(node);
+        graph.nodes = this.getUniq(graph.nodes);
         graph.links.push({ 
-          "target": graph.nodes.length-1, 
-          "source":  0, 
+          "target": (this.getIndex(graph.nodes, node)), 
+          "source":  (this.getIndex(graph.nodes, this.selectedNode.node)), 
           "name": key
         });  
       }   
@@ -224,8 +232,9 @@ export class AppComponent implements OnInit{
     return graph;      
   }
   
-  padding = 5;
-  radius = 60;
+  padding = 50;
+  radius = 40;
+
   collide(alpha) {
       let radius = this.radius;
       let padding = this.padding;
@@ -258,9 +267,45 @@ export class AppComponent implements OnInit{
     
   drawRelationShipGraph() {
     var graph: any = this.getNodesAndLinks();
-    graph['selector'] = '.graph';
     this.padding = 5;
+    graph['selector'] = '.graph';
     this.drawGraph(graph);
+  }
+    
+  concatNodesAndLinks(graph) {
+     let nodes = graph.nodes;
+     let links = graph.links;
+      
+     this.graph.links = this.graph.links.map((link) => {
+       if (typeof link.source === 'object') {
+         link.source = link.source.index;
+       }
+       if (typeof link.target === 'object') {
+         link.target = link.target.index;
+       }
+       return link;
+     });
+     nodes = nodes.concat(this.graph.nodes);
+     links = links.concat(this.graph.links);
+    
+     nodes = this.getUniq(nodes);
+      
+     return {
+       nodes,
+       links  
+     }; 
+  }
+  
+  getUniq(objects) {
+    let temp = [];
+    objects = objects.filter((object) => {
+      if (temp.indexOf(object._id) === -1) {
+        temp.push(object._id);
+        return true;
+      }
+      return false;
+    });
+    return objects;
   }
     
   drawBaseGraph() {
@@ -276,15 +321,18 @@ export class AppComponent implements OnInit{
     this.padding = 50;
     this.drawGraph(graph);
   }
-    
+  
+  counter = 1;
   drawGraph(graph) {
-    this.graph = graph;
+    this.graph = Object.create(graph);
     // Define the dimensions of the visualization. We're using
     // a size that's convenient for displaying the graphic on
     // http://jsDataV.is
     
-    var width = 1920,
-      height = 980;
+    var width = 1920 * this.counter,
+      height = 980 * this.counter;
+      
+    this.counter = this.counter * 1.2;
     
     // Define the data for the example. In general, a force layout
     // requires two data arrays. The first array, here named `nodes`,
@@ -390,8 +438,9 @@ export class AppComponent implements OnInit{
         .on("mouseout", function() {
           // Remove the info text on mouse out.
           d3.select(this).select('text.info').remove();
-        });
-        //.call(node_drag);
+        })
+        .call(node_drag);
+        //.call(force.drag);
         
          //Added 
       
@@ -479,6 +528,10 @@ export class AppComponent implements OnInit{
         });
     
     });
+
+    force.charge(function(node) {
+       return node.graph * -300;
+    });  
     
     // Okay, everything is set up now so it's time to turn
     // things over to the force layout. Here we go.
@@ -503,7 +556,7 @@ export class AppComponent implements OnInit{
     // the next example.    
   }
     
-  handleDrag(force){
+  handleDrag(force) {
     function dragstart(d, i) {
         force.stop() // stops the force auto positioning before you start dragging
     }
