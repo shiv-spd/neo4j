@@ -233,7 +233,7 @@ export class AppComponent implements OnInit{
   }
   
   padding = 50;
-  radius = 40;
+  radius = 80;
 
   collide(alpha) {
       let radius = this.radius;
@@ -366,8 +366,14 @@ export class AppComponent implements OnInit{
     //clear canvas before drawing
     d3.selectAll(graph.selector + " > svg").remove();
     
-    var svg = d3.select(graph.selector).append('svg')
-      .attr("viewBox", "0 0 " + width + " " + height );
+    var svg = d3.select(graph.selector)
+                .append('svg')
+                .attr("viewBox", "0 0 " + width + " " + height )
+                .call(d3.behavior.zoom().on("zoom", function () {
+                   //svg.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
+                    svg.attr("transform", "scale(" + d3.event.scale + ")")
+                }))
+                .append("g");
       
      //   .attr('width', width)
       //  .attr('height', height);
